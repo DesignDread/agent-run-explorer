@@ -10,6 +10,22 @@ import datetime
 
 router = APIRouter(prefix="/api")
 
+@router.get("/debug")
+def debug_info():
+    import os
+    from pathlib import Path
+    base = Path(__file__).parent.parent
+    data_dir = base / "data"
+    
+    return {
+        "cwd": os.getcwd(),
+        "base_dir": str(base),
+        "data_dir_exists": data_dir.exists(),
+        "data_dir_files": os.listdir(data_dir) if data_dir.exists() else [],
+        "runs_count": len(data_store.runs),
+        "data_path_env": os.getenv("DATA_PATH")
+    }
+
 def filter_runs(
     runs: List[Run],
     status: Optional[List[str]] = None,
