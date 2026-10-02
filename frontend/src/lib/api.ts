@@ -1,6 +1,6 @@
 import { PaginatedResponse, Run, StatsResponse } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://agent-run-explorer-backend.vercel.app';
 
 export async function fetchRuns(params: URLSearchParams): Promise<PaginatedResponse> {
   const res = await fetch(`${API_BASE}/api/runs?${params.toString()}`, { cache: 'no-store' });
