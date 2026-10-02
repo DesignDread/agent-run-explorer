@@ -12,15 +12,39 @@ class DataLoader:
         self.runs: List[Run] = []
         self.runs_by_id: Dict[str, Run] = {}
 
+    def _resolve_data_path(self) -> Path | None:
+        """Try multiple locations to find runs.jsonl, for maximum deployment flexibility."""
+        # 1. Explicit env var takes priority
+        env_path = os.getenv("DATA_PATH")
+        if env_path:
+            p = Path(env_path)
+            if not p.is_absolute():
+                p = (Path(__file__).parent.parent / env_path).resolve()
+            if p.exists():
+                return p
+
+        # 2. Standard locations relative to backend/ dir
+        base_dir = Path(__file__).parent.parent  # backend/
+        candidates = [
+            base_dir / "data" / "runs.jsonl",        # backend/data/runs.jsonl (deployed)
+            base_dir / ".." / "data" / "runs.jsonl",  # data/runs.jsonl (project root, local dev)
+        ]
+
+        for candidate in candidates:
+            resolved = candidate.resolve()
+            if resolved.exists():
+                logger.info(f"Found data file at {resolved}")
+                return resolved
+
+        return None
+
     def load(self):
-        data_path_str = os.getenv("DATA_PATH", "../data/runs.jsonl")
-        base_dir = Path(__file__).parent.parent
-        data_path = (base_dir / data_path_str).resolve()
-        
-        if not data_path.exists():
-            logger.warning(f"Data file not found at {data_path}")
+        data_path = self._resolve_data_path()
+        if data_path is None:
+            logger.warning("Data file runs.jsonl not found in any expected location")
             return
 
+        logger.info(f"Loading data from {data_path}")
         with open(data_path, "r", encoding="utf-8") as f:
             for line in f:
                 if not line.strip():
@@ -49,5 +73,7 @@ class DataLoader:
                     
                 self.runs.append(run)
                 self.runs_by_id[run.id] = run
+
+        logger.info(f"Loaded {len(self.runs)} runs successfully")
 
 data_store = DataLoader()
