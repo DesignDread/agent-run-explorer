@@ -1,15 +1,13 @@
 import { PaginatedResponse, Run, StatsResponse } from './types';
 
-function getApiBase() {
+function getApiBase(): string {
   const url = process.env.NEXT_PUBLIC_API_URL;
-  if (!url) {
-    // Only throw in server-side execution. Browsers can use relative paths.
-    if (typeof window === 'undefined') {
-      throw new Error('NEXT_PUBLIC_API_URL environment variable is not defined. Server components require an absolute URL.');
-    }
+  if (!url && typeof window === 'undefined') {
+    // During local builds without the env var set, return empty string.
+    // On Vercel, this variable MUST be set in the project's Environment Variables settings.
     return '';
   }
-  // Strip trailing slash if present
+  if (!url) return '';
   return url.endsWith('/') ? url.slice(0, -1) : url;
 }
 
