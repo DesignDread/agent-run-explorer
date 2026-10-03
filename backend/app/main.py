@@ -25,3 +25,11 @@ app.add_middleware(
 )
 
 app.include_router(router)
+
+@app.get("/")
+def read_root():
+    return {
+        "message": "Agent Run Explorer API is running",
+        "docs_url": "/docs",
+        "health_url": "/api/health"
+    }

@@ -10,6 +10,10 @@ import datetime
 
 router = APIRouter(prefix="/api")
 
+@router.get("/health")
+def health_check():
+    return {"status": "ok", "loaded_runs": len(data_store.runs)}
+
 @router.get("/debug")
 def debug_info():
     import os
