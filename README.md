@@ -7,9 +7,9 @@ A full-stack web tool for browsing and understanding agent run traces. Built wit
 The application is deployed across two separate Vercel services for a professional separation of concerns:
 
 - **Frontend Application:** [https://agent-run-explorer.vercel.app/](https://agent-run-explorer.vercel.app/)
-- **Backend API:** [https://backend-lb13pri4t-code-alchemists.vercel.app](https://backend-lb13pri4t-code-alchemists.vercel.app)
-  - Interactive API Docs: [Swagger UI](https://backend-lb13pri4t-code-alchemists.vercel.app/docs)
-  - API Health Check: [GET /api/health](https://backend-lb13pri4t-code-alchemists.vercel.app/api/health)
+- **Backend API:** [https://backend-q86d30us3-code-alchemists.vercel.app](https://backend-q86d30us3-code-alchemists.vercel.app)
+  - Interactive API Docs: [Swagger UI](https://backend-q86d30us3-code-alchemists.vercel.app/docs)
+  - API Health Check: [GET /api/health](https://backend-q86d30us3-code-alchemists.vercel.app/api/health)
 
 ## Prerequisites
 
