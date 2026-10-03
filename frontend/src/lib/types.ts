@@ -11,6 +11,7 @@ export interface Run {
   input_tokens: number; output_tokens: number; cost_usd: number | null;
   prompt: string; error: RunError | null; tenant_id: string;
   steps: Step[];
+  data_warnings: string[];
 }
 export interface RunSummary extends Omit<Run, 'steps'> {}
 export interface PaginatedResponse {

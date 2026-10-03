@@ -1,69 +1,84 @@
 'use client';
 
-import { StatsResponse } from '@/lib/types';
-import { 
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
+import {
+  BarChart, Bar, LineChart, Line, XAxis, YAxis,
+  Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts';
+import { StatsResponse } from '@/lib/types';
 
-export default function DashboardCharts({ stats }: { stats: StatsResponse }) {
+const AGENT_COLORS = ['#22d3ee', '#818cf8', '#34d399', '#fbbf24', '#f87171'];
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (!active || !payload?.length) return null;
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-          <h2 className="text-lg font-semibold mb-4">Runs per Day</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={stats.runs_per_day}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="date" stroke="#9ca3af" fontSize={12} />
-                <YAxis stroke="#9ca3af" fontSize={12} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', color: '#f3f4f6' }}
-                  itemStyle={{ color: '#60a5fa' }}
-                />
-                <Line type="monotone" dataKey="count" stroke="#3b82f6" strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-          <h2 className="text-lg font-semibold mb-4">Success Rate by Agent</h2>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.agents}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="agent" stroke="#9ca3af" fontSize={12} />
-                <YAxis stroke="#9ca3af" fontSize={12} domain={[0, 1]} tickFormatter={(val) => `${(val * 100).toFixed(0)}%`} />
-                <Tooltip 
-                  formatter={(val: number) => [`${(val * 100).toFixed(1)}%`, 'Success Rate']}
-                  contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', color: '#f3f4f6' }}
-                />
-                <Bar dataKey="success_rate" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-gray-900 p-6 rounded-lg border border-gray-800">
-        <h2 className="text-lg font-semibold mb-1">Total Cost by Agent</h2>
-        <p className="text-sm text-gray-500 mb-4">Note: Some runs may have null costs</p>
-        <div className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={stats.agents}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="agent" stroke="#9ca3af" fontSize={12} />
-              <YAxis stroke="#9ca3af" fontSize={12} tickFormatter={(val) => `$${val}`} />
-              <Tooltip 
-                formatter={(val: number) => [`$${val.toFixed(2)}`, 'Total Cost']}
-                contentStyle={{ backgroundColor: '#111827', borderColor: '#374151', color: '#f3f4f6' }}
-              />
-              <Bar dataKey="total_cost" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
+    <div className="glass rounded-xl px-4 py-3 text-sm shadow-xl">
+      <p className="text-slate-400 text-xs mb-1">{label}</p>
+      {payload.map((p: any, i: number) => (
+        <p key={i} style={{ color: p.color || p.fill }} className="font-semibold">
+          {p.name}: {typeof p.value === 'number' && p.value < 1 ? `${(p.value * 100).toFixed(1)}%` : p.value}
+        </p>
+      ))}
     </div>
+  );
+};
+
+export function RunsPerDayChart({ data }: { data: { date: string; count: number }[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <LineChart data={data} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+        <XAxis dataKey="date" tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={d => d.slice(5)} />
+        <YAxis tick={{ fill: '#64748b', fontSize: 10 }} />
+        <Tooltip content={<CustomTooltip />} />
+        <Line type="monotone" dataKey="count" stroke="#22d3ee" strokeWidth={2} dot={false} name="Runs" />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function SuccessRateChart({ agents }: { agents: StatsResponse['agents'] }) {
+  const data = agents.map(a => ({
+    name: a.agent.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' '),
+    rate: parseFloat((a.success_rate * 100).toFixed(1)),
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <BarChart data={data} margin={{ top: 5, right: 5, bottom: 40, left: -20 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+        <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} angle={-30} textAnchor="end" />
+        <YAxis tick={{ fill: '#64748b', fontSize: 10 }} domain={[0, 100]} tickFormatter={v => `${v}%`} />
+        <Tooltip content={<CustomTooltip />} />
+        <Bar dataKey="rate" name="Success Rate" radius={[4, 4, 0, 0]}>
+          {data.map((_, i) => (
+            <Cell key={i} fill={AGENT_COLORS[i % AGENT_COLORS.length]} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+export function CostChart({ agents }: { agents: StatsResponse['agents'] }) {
+  const data = agents.map(a => ({
+    name: a.agent.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' '),
+    cost: parseFloat(a.total_cost.toFixed(4)),
+    nullCount: a.null_cost_count,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={220}>
+      <BarChart data={data} margin={{ top: 5, right: 5, bottom: 40, left: -10 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+        <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} angle={-30} textAnchor="end" />
+        <YAxis tick={{ fill: '#64748b', fontSize: 10 }} tickFormatter={v => `$${v}`} />
+        <Tooltip content={<CustomTooltip />} />
+        <Bar dataKey="cost" name="Total Cost ($)" radius={[4, 4, 0, 0]}>
+          {data.map((_, i) => (
+            <Cell key={i} fill={AGENT_COLORS[i % AGENT_COLORS.length]} fillOpacity={0.85} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
   );
 }

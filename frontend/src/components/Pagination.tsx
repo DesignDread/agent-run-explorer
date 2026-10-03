@@ -2,41 +2,59 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function Pagination({ total, page, pageSize }: { total: number, page: number, pageSize: number }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+interface Props {
+  total: number;
+  page: number;
+  pageSize: number;
+}
 
+export default function Pagination({ total, page, pageSize }: Props) {
+  const router = useRouter();
+  const sp = useSearchParams();
+  const totalPages = Math.ceil(total / pageSize);
   const start = (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, total);
-  const totalPages = Math.ceil(total / pageSize);
 
-  const goToPage = (p: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', p.toString());
+  const go = (p: number) => {
+    const params = new URLSearchParams(sp.toString());
+    params.set('page', String(p));
     router.push(`/runs?${params.toString()}`);
   };
 
   if (total === 0) return null;
 
   return (
-    <div className="flex items-center justify-between mt-4 text-sm text-gray-400">
-      <div>
-        Showing <span className="font-medium text-gray-200">{start}</span> to <span className="font-medium text-gray-200">{end}</span> of <span className="font-medium text-gray-200">{total}</span>
-      </div>
-      <div className="flex gap-2">
+    <div className="flex items-center justify-between mt-6 px-1">
+      <p className="text-sm text-slate-500">
+        Showing <span className="text-slate-300 font-medium">{start}–{end}</span> of{' '}
+        <span className="text-slate-300 font-medium">{total}</span> runs
+      </p>
+
+      <div className="flex items-center gap-2">
         <button
-          onClick={() => goToPage(page - 1)}
+          onClick={() => go(page - 1)}
           disabled={page <= 1}
-          className="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:text-white border border-slate-700 hover:border-slate-500 rounded-xl transition-all"
         >
-          Previous
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Prev
         </button>
+
+        <span className="px-4 py-2 text-sm text-slate-400 border border-slate-800 rounded-xl bg-slate-900/50">
+          {page} / {totalPages}
+        </span>
+
         <button
-          onClick={() => goToPage(page + 1)}
+          onClick={() => go(page + 1)}
           disabled={page >= totalPages}
-          className="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-slate-400 disabled:opacity-30 disabled:cursor-not-allowed hover:text-white border border-slate-700 hover:border-slate-500 rounded-xl transition-all"
         >
           Next
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
     </div>

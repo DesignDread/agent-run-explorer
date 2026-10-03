@@ -1,6 +1,19 @@
 import { PaginatedResponse, Run, StatsResponse } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+function getApiBase() {
+  const url = process.env.NEXT_PUBLIC_API_URL;
+  if (!url) {
+    // Only throw in server-side execution. Browsers can use relative paths.
+    if (typeof window === 'undefined') {
+      throw new Error('NEXT_PUBLIC_API_URL environment variable is not defined. Server components require an absolute URL.');
+    }
+    return '';
+  }
+  // Strip trailing slash if present
+  return url.endsWith('/') ? url.slice(0, -1) : url;
+}
+
+const API_BASE = getApiBase();
 
 export async function fetchRuns(params: URLSearchParams): Promise<PaginatedResponse> {
   const res = await fetch(`${API_BASE}/api/runs?${params.toString()}`, { cache: 'no-store' });
